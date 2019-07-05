@@ -53,13 +53,10 @@ export class MyApp {
   login() {
     this.splashScreen.show();
 
-    const url = `https://login.microsoftonline.com/common/oauth2/authorize?client_id=`
+    const url = `https://login.microsoftonline.com/f8a1e658-4481-439f-af4c-fb0c9588eee4/oauth2/authorize?client_id=`
       + this._config.clientId + //here need to paste your client id
       `&response_type=code&redirect_uri=`
-      + encodeURI(this._config.redirectUri) + //here encoding redirect url using default function
-      `&response_mode=query&resource=`
-      + encodeURI(this._config.resourceUrl) + //here encoding resource url using default function
-      `&state=12345`;
+      + encodeURI(this._config.redirectUri) //here encoding redirect url using default function
 
     const browser = this.iab.create(url, '_blank', {
       location: 'no',
