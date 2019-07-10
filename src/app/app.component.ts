@@ -31,7 +31,12 @@ export class MyApp {
       { title: 'Home', component: HomePage },
       { title: 'List', component: ListPage }
     ];
-    this.login();
+    platform.ready().then(() => {
+      console.log('Wait...');
+
+      this.login();
+    });
+
 
   }
 
@@ -44,19 +49,20 @@ export class MyApp {
     });
   }
 
-  openPage(page) {
+/*   openPage(page) {
     // Reset the content nav to have just this page
     // we wouldn't want the back button to show in this scenario
     this.nav.setRoot(page.component);
-  }
+  } */
 
   login() {
-    this.splashScreen.show();
+    //this.splashScreen.show();
 
     const url = `https://login.microsoftonline.com/f8a1e658-4481-439f-af4c-fb0c9588eee4/oauth2/authorize?client_id=`
       + this._config.clientId + //here need to paste your client id
       `&response_type=code&redirect_uri=`
       + encodeURI(this._config.redirectUri) //here encoding redirect url using default function
+    console.log('URL: ', url);
 
     const browser = this.iab.create(url, '_blank', {
       location: 'no',
@@ -66,22 +72,36 @@ export class MyApp {
     });
 
     browser.on("loadstart").subscribe((event) => {
+      console.log('loadStart 1');
+      console.log('Event: ', event);
+
+      var log1 = event.url;
+      var log2 = event.url.split("username=")
+      console.log('LOG1: ', log1);
+      console.log('LOG2 ', log2[1]);
+
       this.splashScreen.show();
     });
 
     browser.on("loadstop").subscribe((event) => {
+      console.log('loadStop');
+
       this.splashScreen.hide();
       browser.show();
     });
 
     browser.on("loaderror").subscribe((event) => {
+      console.log('loadError');
+
       //here we have split our requiring part one.
       var result = event.url.split("code=");
-      console.log("Authentication result", result);
+        console.log("Authentication result", result);
       //here we have split our requiring part two.
       window["AuthResult"] = result[1].split('&')[0];
       // Authentication Code stored in local for future purpose.
       // It means get access token and refresh token for sharepoint.
+        console.log('Value: ', window["AuthResult"]);
+
       localStorage.setItem('AuthCode', window["AuthResult"]);
       browser.close();
     });
