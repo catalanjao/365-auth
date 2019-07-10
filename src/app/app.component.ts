@@ -9,6 +9,8 @@ import { ListPage } from '../pages/list/list';
 import { InAppBrowser, InAppBrowserEvent } from '@ionic-native/in-app-browser';
 
 import { ConfigProvider } from './config';
+import { HTTP } from '@ionic-native/http';
+import { HttpClient } from '@angular/common/http';
 
 @Component({
   templateUrl: 'app.html'
@@ -17,13 +19,15 @@ export class MyApp {
   @ViewChild(Nav) nav: Nav;
   rootPage: any = HomePage;
   pages: Array<{ title: string, component: any }>;
+  private reqData : String;
 
   constructor(
     public platform: Platform,
     public statusBar: StatusBar,
     public splashScreen: SplashScreen,
     public iab: InAppBrowser,
-    public _config: ConfigProvider
+    public _config: ConfigProvider,
+    public http: HttpClient
   ) {
     this.initializeApp();
     // used for an example of ngFor and navigation
@@ -58,8 +62,8 @@ export class MyApp {
   login() {
     //this.splashScreen.show();
 
-    const url = `https://login.microsoftonline.com/f8a1e658-4481-439f-af4c-fb0c9588eee4/oauth2/authorize?client_id=`
-      + this._config.clientId + //here need to paste your client id
+    const url = this._config.AuthURL
+      + this._config.clientId +
       `&response_type=code&redirect_uri=`
       + encodeURI(this._config.redirectUri) //here encoding redirect url using default function
     console.log('URL: ', url);
@@ -119,11 +123,46 @@ export class MyApp {
             }
           }
         }
+        this.getAccessToken();
       },
       (err) => {
         console.log("InAppBrowser Loadstop Event Error: " + err);
       }
     );
+  }
+
+  getAccessToken() {
+
+    this.reqData = "client_id="+this._config.clientId+"&client_secret="+this._config.clientSecret+"&scope=offline_access+openid+profile+User.Read&grant_type=authorization_code&code="+localStorage.getItem("AuthCode")+"&redirect_uri="+this._config.redirectUri;
+
+    this.getTokens(this.reqData);
+  }
+
+  getTokens(requestData:String) {
+    var headers = new Headers();
+    headers.append('Content-Type','application/x-www-form-urlencoded');
+    var requestOptions = new requestOptions({ headers: headers });
+    this.http.post(this._config.AccessTokenURL, requestData, requestOptions)
+
+    .subscribe((result:any) => {
+
+        if(result){
+            console.log("Response",JSON.parse(result.data));
+
+            //here set token value as internal storage future purpose.
+            localStorage.setItem("token",JSON.parse(result.data).access_token);
+
+            //here set refresh token value as internal storage future purpose.
+            localStorage.setItem("refereshToken",JSON.parse(result.data).refresh_token);
+
+        }
+
+    },(error) => {
+
+        console.log(error);
+
+    });
+
   }
 
 }
