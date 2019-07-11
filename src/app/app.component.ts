@@ -19,7 +19,6 @@ export class MyApp {
   @ViewChild(Nav) nav: Nav;
   rootPage: any = HomePage;
   pages: Array<{ title: string, component: any }>;
-  private reqData : String;
 
   constructor(
     public platform: Platform,
@@ -27,7 +26,7 @@ export class MyApp {
     public splashScreen: SplashScreen,
     public iab: InAppBrowser,
     public _config: ConfigProvider,
-    public http: HttpClient
+    private http: HTTP
   ) {
     this.initializeApp();
     // used for an example of ngFor and navigation
@@ -133,36 +132,52 @@ export class MyApp {
 
   getAccessToken() {
 
-    this.reqData = "client_id="+this._config.clientId+"&client_secret="+this._config.clientSecret+"&scope=offline_access+openid+profile+User.Read&grant_type=authorization_code&code="+localStorage.getItem("AuthCode")+"&redirect_uri="+this._config.redirectUri;
+    let body = {
+      'client_id':this._config.clientId,
+      'client_secret=':this._config.clientSecret,
+      'client_secret':this._config.clientSecret,
+      'scope':'offline_access+openid+profile+User.Read',
+      'grant_type': 'authorization_code',
+      'code':localStorage.getItem("AuthCode"),
+      'redirect_uri':this._config.redirectUri
+    }
 
-    this.getTokens(this.reqData);
+    this.getTokens(body);
   }
 
-  getTokens(requestData:String) {
-    var headers = new Headers();
-    headers.append('Content-Type','application/x-www-form-urlencoded');
-    var requestOptions = new requestOptions({ headers: headers });
-    this.http.post(this._config.AccessTokenURL, requestData, requestOptions)
+  getTokens(body) {
 
-    .subscribe((result:any) => {
+    let headers = {
+
+        'Content-Type': 'application/x-www-form-urlencoded'
+
+    };
+
+    this.http.post(this._config.AccessTokenURL, body, headers)
+
+    .then((result:any) => {
 
         if(result){
+
             console.log("Response",JSON.parse(result.data));
 
             //here set token value as internal storage future purpose.
+
             localStorage.setItem("token",JSON.parse(result.data).access_token);
 
             //here set refresh token value as internal storage future purpose.
+
             localStorage.setItem("refereshToken",JSON.parse(result.data).refresh_token);
 
         }
 
-    },(error) => {
+    })
 
+    .catch((error) => {
+        console.log("Error en el resultado");
         console.log(error);
 
     });
 
   }
-
 }
