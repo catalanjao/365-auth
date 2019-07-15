@@ -10,7 +10,7 @@ import { InAppBrowser, InAppBrowserEvent } from '@ionic-native/in-app-browser';
 
 import { ConfigProvider } from './config';
 import { HTTP } from '@ionic-native/http';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 
 @Component({
   templateUrl: 'app.html'
@@ -26,7 +26,8 @@ export class MyApp {
     public splashScreen: SplashScreen,
     public iab: InAppBrowser,
     public _config: ConfigProvider,
-    private http: HTTP
+    private http: HTTP,
+    private httpclient:HttpClient
   ) {
     this.initializeApp();
     // used for an example of ngFor and navigation
@@ -134,7 +135,6 @@ export class MyApp {
 
     let body = {
       'client_id':this._config.clientId,
-      'client_secret=':this._config.clientSecret,
       'client_secret':this._config.clientSecret,
       'scope':'offline_access+openid+profile+User.Read',
       'grant_type': 'authorization_code',
@@ -177,6 +177,16 @@ export class MyApp {
         console.log("Error en el resultado");
         console.log(error);
 
+    });
+
+  }
+
+  decodetoken(){
+    let headers = new HttpHeaders({"Authorization": localStorage.getItem("token"), "Content-Type": 'application/json'});
+    this.httpclient.get("http://localhost:7008/security/token-office",{ headers: headers }).subscribe((resp)=>{
+
+    },(error)=>{
+      console.log("El error fue: ",error);
     });
 
   }
